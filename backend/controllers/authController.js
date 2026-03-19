@@ -33,14 +33,20 @@ export const register = async (req, res) => {
     `;
 
         db.query(sql, [name, email, hashed, address], (err, result) => {
-            if (err) return res.status(500).json(err);
+            if (err) {
+                console.error("Register DB error:", err);
+                return res.status(500).json({ msg: "Server error" });
+            }
 
             res.json({ message: "User registered successfully" });
         });
     } catch (err) {
-        res.status(500).json(err);
+        console.error("Register error:", err);
+        res.status(500).json({ msg: "Server error" });
     }
 };
+
+const JWT_SECRET = process.env.JWT_SECRET || "SECRET_KEY";
 
 export const login = (req, res) => {
     let { email, password } = req.body;
@@ -50,21 +56,24 @@ export const login = (req, res) => {
     const sql = `SELECT * FROM users WHERE email = ?`;
 
     db.query(sql, [email], async (err, results) => {
-        if (err) return res.status(500).json(err);
+        if (err) {
+            console.error("Login DB error:", err);
+            return res.status(500).json({ msg: "Server error" });
+        }
 
         if (results.length === 0)
-            return res.status(400).json({ msg: "User not found" });
+            return res.status(400).json({ msg: "Invalid email or password" });
 
         const user = results[0];
 
         const match = await bcrypt.compare(password, user.password);
 
         if (!match)
-            return res.status(400).json({ msg: "Invalid password" });
+            return res.status(400).json({ msg: "Invalid email or password" });
 
         const token = jwt.sign(
             { id: user.id, role: user.role },
-            "SECRET_KEY"
+            JWT_SECRET
         );
 
         res.json({ token, role: user.role });
@@ -78,7 +87,14 @@ export const updatePassword = async (req, res) => {
     const sql = `SELECT password FROM users WHERE id = ?`;
 
     db.query(sql, [userId], async (err, result) => {
-        if (err) return res.status(500).json(err);
+        if (err) {
+            console.error("Update password DB error:", err);
+            return res.status(500).json({ msg: "Server error" });
+        }
+
+        if (!result || result.length === 0) {
+            return res.status(404).json({ msg: "User not found" });
+        }
 
         const user = result[0];
 
@@ -93,7 +109,10 @@ export const updatePassword = async (req, res) => {
             `UPDATE users SET password = ? WHERE id = ?`,
             [hashed, userId],
             (err2) => {
-                if (err2) return res.status(500).json(err2);
+                if (err2) {
+                    console.error("Password update DB error:", err2);
+                    return res.status(500).json({ msg: "Server error" });
+                }
 
                 res.json({ message: "Password updated successfully" });
             }

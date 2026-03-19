@@ -22,13 +22,17 @@ export const createUserByAdmin = async (req, res) => {
       sql,
       [name, email.toLowerCase(), hashed, address, role],
       (err) => {
-        if (err) return res.status(500).json(err);
+        if (err) {
+          console.error("Create user DB error:", err);
+          return res.status(500).json({ msg: "Server error" });
+        }
 
         res.json({ message: `${role} created successfully` });
       }
     );
   } catch (err) {
-    res.status(500).json(err);
+    console.error("Create user error:", err);
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
