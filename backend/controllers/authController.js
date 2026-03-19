@@ -54,3 +54,33 @@ export const login = (req, res) => {
     res.json({ token, role: user.role });
   });
 };
+
+export const updatePassword = async (req, res) => {
+  const userId = req.user.id;
+  const { oldPassword, newPassword } = req.body;
+
+  const sql = `SELECT password FROM users WHERE id = ?`;
+
+  db.query(sql, [userId], async (err, result) => {
+    if (err) return res.status(500).json(err);
+
+    const user = result[0];
+
+    const match = await bcrypt.compare(oldPassword, user.password);
+
+    if (!match)
+      return res.status(400).json({ msg: "Old password incorrect" });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    db.query(
+      `UPDATE users SET password = ? WHERE id = ?`,
+      [hashed, userId],
+      (err2) => {
+        if (err2) return res.status(500).json(err2);
+
+        res.json({ message: "Password updated successfully" });
+      }
+    );
+  });
+};

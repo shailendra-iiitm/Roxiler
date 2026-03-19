@@ -55,3 +55,40 @@ export const getStores = (req, res) => {
     res.json(results);
   });
 };
+
+export const getOwnerDashboard = (req, res) => {
+  const ownerId = req.user.id;
+
+  const sql = `
+    SELECT 
+      s.id AS store_id,
+      s.name AS store_name,
+      u.name AS user_name,
+      u.email,
+      r.rating
+    FROM stores s
+    JOIN ratings r ON s.id = r.store_id
+    JOIN users u ON r.user_id = u.id
+    WHERE s.owner_id = ?
+  `;
+
+  db.query(sql, [ownerId], (err, results) => {
+    if (err) return res.status(500).json(err);
+
+    const avgSql = `
+      SELECT IFNULL(AVG(r.rating),0) AS avgRating
+      FROM stores s
+      LEFT JOIN ratings r ON s.id = r.store_id
+      WHERE s.owner_id = ?
+    `;
+
+    db.query(avgSql, [ownerId], (err2, avgResult) => {
+      if (err2) return res.status(500).json(err2);
+
+      res.json({
+        average_rating: avgResult[0].avgRating,
+        users: results,
+      });
+    });
+  });
+};
