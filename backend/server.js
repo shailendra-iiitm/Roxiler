@@ -8,7 +8,9 @@ import routes from "./routes/index.js";
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
 
-app.use(cors());
+const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
+app.use(cors({ origin: allowedOrigin }));
 app.use(express.json());
 app.use("/api", routes);
 
