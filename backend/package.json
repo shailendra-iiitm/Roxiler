@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server.js",
+  "dev": "nodemon src/app.js",
+  "build": "echo \"No build step needed for backend\"",
+  "start": "node server.js"
   },
   "keywords": [],
   "author": "",
