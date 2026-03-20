@@ -82,6 +82,17 @@ Production:
 ### Frontend
 - VITE_API_URL=https://roxiler-gymf.onrender.com/api
 
+## Seed Mock Data
+
+Use this when setting up the project on a fresh database.
+
+1. Create an empty MySQL database.
+2. Run schema from backend/db/schema.sql.
+3. Configure backend DB connection in backend/.env using either DATABASE_URL or db_host, db_port, db_user, db_password, db_database.
+4. From backend folder, run:
+	node db/seed.js
+
+
 
 ## API Summary
 All APIs are under /api.
